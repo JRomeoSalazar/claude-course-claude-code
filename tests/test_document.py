@@ -1,6 +1,6 @@
 import os
 import pytest
-from tools.document import binary_document_to_markdown
+from tools.document import binary_document_to_markdown, document_path_markdown
 
 
 class TestBinaryDocumentToMarkdown:
@@ -47,3 +47,42 @@ class TestBinaryDocumentToMarkdown:
         assert len(result) > 0
         # Check for typical markdown formatting - this will depend on your actual test file
         assert "#" in result or "-" in result or "*" in result
+
+
+class TestDocumentPathMarkdown:
+    PDF_FIXTURE = TestBinaryDocumentToMarkdown.PDF_FIXTURE
+    DOCX_FIXTURE = TestBinaryDocumentToMarkdown.DOCX_FIXTURE
+
+    def test_document_path_markdown_with_pdf(self):
+        """Test converting a PDF file path to markdown."""
+        result = document_path_markdown(self.PDF_FIXTURE)
+
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    def test_document_path_markdown_with_docx(self):
+        """Test converting a DOCX file path to markdown."""
+        result = document_path_markdown(self.DOCX_FIXTURE)
+
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    def test_document_path_markdown_matches_binary_conversion(self):
+        """The path tool must return the same markdown as converting the bytes."""
+        with open(self.PDF_FIXTURE, "rb") as f:
+            expected = binary_document_to_markdown(f.read(), "pdf")
+
+        assert document_path_markdown(self.PDF_FIXTURE) == expected
+
+    def test_document_path_markdown_rejects_unsupported_extension(self, tmp_path):
+        """Test that a non PDF/DOCX file is rejected."""
+        text_file = tmp_path / "notes.txt"
+        text_file.write_text("hello")
+
+        with pytest.raises(ValueError, match="Unsupported file type"):
+            document_path_markdown(str(text_file))
+
+    def test_document_path_markdown_with_missing_file(self, tmp_path):
+        """Test that a nonexistent path raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            document_path_markdown(str(tmp_path / "missing.pdf"))

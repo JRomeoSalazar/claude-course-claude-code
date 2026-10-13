@@ -32,7 +32,7 @@ An MCP server (named `docs`) exposing document conversion and processing tools t
 - `tools/` holds the tool implementations as plain Python functions, one module per domain (`math.py`, `document.py`). They do not import `mcp`, so they are unit-testable without a running server.
 - `tests/` calls the tool functions directly; binary fixtures live in `tests/fixtures/`.
 
-A function in `tools/` is **not** an MCP tool until it is registered in `main.py`. Currently only `add` is registered; `binary_document_to_markdown` in `tools/document.py` is implemented and tested but not yet exposed.
+A function in `tools/` is **not** an MCP tool until it is registered in `main.py`. `add` and `document_path_markdown` are registered. `binary_document_to_markdown` in `tools/document.py` is deliberately not registered: it is the internal helper that `document_path_markdown` delegates to, since raw bytes are impractical to pass through an MCP call.
 
 Document conversion goes through `markitdown` (installed with the `docx` and `pdf` extras): bytes are wrapped in a `BytesIO` and the format is passed as `StreamInfo(extension=...)`.
 
@@ -75,4 +75,4 @@ def my_tool(
     # Implementation
 ```
 
-`tools/math.py::add` is the reference example that follows all of these conventions. `tools/document.py::binary_document_to_markdown` does not yet (one-line docstring, no `Field` descriptions) and needs both before it is registered.
+`tools/math.py::add` and `tools/document.py::document_path_markdown` are reference examples that follow all of these conventions.
